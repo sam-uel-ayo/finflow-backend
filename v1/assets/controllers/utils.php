@@ -1,0 +1,144 @@
+<?php
+namespace cUtils;
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+
+class cUtils {
+
+    // Verify payload
+    public static function validatePayload(array $requiredKeys, $data, array $optionalKey = [])
+    {
+        $validKeys = array_merge($requiredKeys, $optionalKey);
+
+        $invalidKeys = array_diff(array_keys($data), $validKeys);
+
+        if (!empty($invalidKeys)) {
+            foreach ($invalidKeys as $key) {
+                $errors[] = "$key is not a valid input field";
+            }
+        }
+
+        foreach ($requiredKeys as $key) {
+            if (empty(trim($data[$key]))) {
+                $errors[] = ucfirst($key) . ' is required';
+            }
+        }
+
+        if (!empty($errors)) {
+            self::outputData(false, "Payload Error", $errors, true, 400);
+        }
+    }
+    // End verify payload
+
+
+    // Output data to user/ frontend
+    public static function outputData($status=false, $message=null, $data=null, $exit =false, $httpStatus) 
+    {
+        http_response_code($httpStatus);
+        if ($data == null) {
+            $data = array();
+        }
+        $output = array(
+            'status' => $status,
+            'message' => $message,
+            'data' => $data,
+            "statusCode" => $httpStatus
+        );
+
+        header('Content-Type: application/json');
+        echo json_encode($output);
+
+        foreach (get_defined_vars() as $var) {
+            unset($var);
+        }
+
+        if ($exit == true) {
+            exit();
+        }
+    }
+
+
+    // return data to be used in program
+    public static function returnData($status= false, $message=null, $data=array(), $exit = false, $httpStatus) 
+    {
+        $output = array(
+            'status' => $status,
+            'message' => $message,
+            'data' => $data,
+            "statusCode" => $httpStatus
+        );
+        return json_encode($output);
+
+        foreach (get_defined_vars() as $var) {
+            unset($var);
+        }
+
+        if ($exit == true) {
+            exit();
+        }
+    }
+
+    public static function arrayToObject($data)
+    {
+    if (is_array($data)) {
+        return json_decode(json_encode($data));
+    }
+    return null; // Return null if $data is not an array
+    }
+
+    public static function objectToArray($data)
+    {
+        if (is_object($data) || is_array($data)) {
+            return json_decode(json_encode($data), true);
+        }
+        return null; // Return null if $data is not an object or array
+    }
+
+
+    // validate email
+    public static function validateEmail($email=null)
+    {
+        if ($email==null) {
+            return self::returnData(false, "Email data not found", $email, true, 400);
+        }
+
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            list($user, $domain) = explode('@', $email);
+            if (checkdnsrr($domain, "MX")) {
+                // echo "The email address is valid and the domain has an MX record.";
+                return self::returnData(true, "The email address is valid and the domain has an MX record.", $email, true, 200);
+            } else {
+                // echo "The email address is valid, but the domain does not have an MX record.";
+                return self::returnData(false, "The email address is valid, but the domain does not have an MX record.", $email, true, 400);
+            }
+        } else {
+            return self::returnData(false, "The email address is not valid.", $email, true, 400);
+        }
+    }
+    // end validate email
+
+
+    // Generate User_Id
+    public static function generateUserId($firstName, $lastName, $email) {
+        $salt = bin2hex(random_bytes(4));; // Replace with a secret value
+        $data = $firstName . $lastName . $email . $salt;
+        $hash = hash('sha256', $data);
+        $userId = substr($hash, 0, 4) . substr($hash, -4);
+        return strtoupper($userId);
+    }
+    // End of method
+
+
+    // Generate Email OTP
+    public static function generateEmailOTP() {
+        $randomOTP = bin2hex(random_bytes(4));
+        $hash = hash('sha256', $randomOTP);
+        $OTP = substr($hash, 0, 4) . substr($hash, -4);
+        return strtoupper($OTP);
+    }
+    // End of method
+
+
+
+
+}

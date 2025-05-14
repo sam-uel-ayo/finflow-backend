@@ -6,20 +6,24 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 class cUtils {
 
     // Verify payload
-    public static function validatePayload(array $requiredKeys, $data, array $optionalKey = [])
+    public static function validatePayload(array $requiredKeys, array $data, array $optionalKeys = [])
     {
-        $validKeys = array_merge($requiredKeys, $optionalKey);
+        $errors = [];
 
+        // All the keys we allow
+        $validKeys = array_merge($requiredKeys, $optionalKeys);
+
+        // Check for any totally unknown keys
         $invalidKeys = array_diff(array_keys($data), $validKeys);
-
-        if (!empty($invalidKeys)) {
-            foreach ($invalidKeys as $key) {
-                $errors[] = "$key is not a valid input field";
-            }
+        foreach ($invalidKeys as $key) {
+            $errors[] = "$key is not a valid input field";
         }
 
+        // Check each required key for presence and non-empty value
         foreach ($requiredKeys as $key) {
-            if (empty(trim($data[$key]))) {
+            // coalesce to empty string if not set, then cast to string and trim
+            $value = trim((string) ($data[$key] ?? ''));
+            if ($value === '') {
                 $errors[] = ucfirst($key) . ' is required';
             }
         }
@@ -28,7 +32,8 @@ class cUtils {
             self::outputData(false, "Payload Error", $errors, true, 400);
         }
     }
-    // End verify payload
+// End verify payload
+
 
 
     // Output data to user/ frontend
@@ -138,6 +143,11 @@ class cUtils {
     }
     // End of method
 
+
+    // Get config infomation
+    public static function config(string $key, $default = null) {
+        return getenv($key) ?: $_ENV[$key] ?? $default;
+    }
 
 
 

@@ -4,11 +4,7 @@ require_once '../middleware/verifyJWT.php';
 
 // Authenticate user 
 $user = verifyJWT();
-if (!is_object($user)) {
-    // $user contains the error response already formatted
-    echo json_encode($user);
-    exit;
-}
+
 use cUtils\cUtils;
 use cAuth\cAuth;
 

@@ -248,40 +248,29 @@ class mAuth {
     // Method End
 
 
-    // Store user authentication details - user_id, access_token, expiry_time, ip_address, $user_agent - should later go to redis
-    public static function userAuthDetails ($user_id, $access_token, $expiry_time, $ip_address, $user_agent)
+    //  Check onboarding status with user_id 
+    public static function onboardingStatus($user_id)
     {
         try {
-            $query = "INSERT INTO users_auth_log (user_id, access_token, expiry_time, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)";
+            $query = "SELECT is_verified, kyc_status, has_transaction_pin FROM users WHERE user_id = :user_id";
             $stmt = Database::getConnection()->prepare($query);
 
-            $stmt->execute([$user_id, $access_token, $expiry_time, $ip_address, $user_agent]);
-
-        } catch (Exception $e) {
-            return cUtils::returnData(false, $e->getMessage(), $user_id, true);
-        }
-    }
-    // Method End
-
-
-    // Get user authentication details
-    public static function getAuthDetails ($user_id, $access_token)
-    {
-        try {
-            $query = "SELECT * FROM users_auth_log WHERE user_id = ? AND token = ? AND expiry > NOW()";
-            $stmt = Database::getConnection()->prepare($query);
-            
-            $stmt->execute([$user_id, $access_token]);
-            $result = $stmt->fetchObject();
-    
-            if (!$result) {
-                return false;
+            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_STR);
+            if(!$stmt->execute()){
+                throw new Exception("Failed");
             }
-            return $result;
-            
+
+            if ($stmt->rowCount() < 1){
+                return cUtils::returnData(false, "User details invalid - Please login", $user_id, true, 400); // Email doesn't exist
+            }
+
+            $results = $stmt->fetch(PDO::FETCH_ASSOC);
+            return cUtils::returnData(true,"Logged In", $results, true, 200); // Results is onboarding status(s)
+        } catch (PDOException $e) {
+            return cUtils::returnData(false, "Database error: " . $e->getMessage(), null, true, 500);
         } catch (Exception $e) {
-            return cUtils::returnData(false, $e->getMessage(), $user_id, true);
+            return cUtils::returnData(false, $e->getMessage(), null, true, $e->getCode() ?: 500);
         }
     }
-    // Method End
+    // End of method 
 }

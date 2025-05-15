@@ -5,6 +5,7 @@ use cUtils\cUtils;
 use mAuth\mAuth;
 use JWTHandler\JWTHandler;
 use Exception; 
+use Mailer\Mailer;
 
 class cAuth {
 
@@ -116,9 +117,8 @@ class cAuth {
                 
             ]);
             
-            //Send Mail - Account created (Welcome)
-            self::verifyEmail($data->email);
-            //Send Mail - Verify email
+            //Send Mail - Account created (Welcome-Verify email)
+            self::verifyEmail($data->first_name, $data->email);
 
             $output = ["user_id" => $user_id, "email" => $data->email];
             return json_decode(cUtils::returnData(true, "Signup successful", $output, true, 201));
@@ -130,7 +130,7 @@ class cAuth {
 
 
     // Verify Email 
-    public static function verifyEmail($data)
+    public static function verifyEmail($name, $email)
     {
         try {
             if ($data = null){
@@ -149,7 +149,9 @@ class cAuth {
                 'samesite' => 'Strict'
             ];
             setcookie('email_verify_OTP', $OTP, $cookieOptions);
+
             // Send Email - OTP Sent
+            Mailer::verifyUser($name, $email, $OTP);
             return json_decode(cUtils::returnData(true, "Verification Email Sent", $data, true, 200));
         } catch (Exception $e) {
             return cUtils::returnData(false, $e->getMessage(), null, true, $e->getCode() ?: 500);
@@ -179,7 +181,8 @@ class cAuth {
             if ($isVerified->status == false){
                 throw new Exception($isVerified->message, $isVerified->statusCode);
             } 
-
+            // Send Email - Welcome to Finflow
+            Mailer::welcomeUser($data->email);
             return json_decode(cUtils::returnData(true, $isVerified->message, $data, true, $isVerified->statusCode));
         } catch (Exception $e) {
             return json_decode(cUtils::returnData(false, $e->getMessage(), $data, true, $e->getCode() ?: 500));
@@ -358,4 +361,23 @@ class cAuth {
         }
     }
     // Method End 
+
+
+    // Check onboarding status
+    public static function onboardingStatus($data)
+    {
+        try {
+            if ($data == null) {
+                throw new Exception("Data not found", 400);
+            }
+
+            $checkStatus = json_decode(mAuth::onboardingStatus($data->user_id));
+            if ($checkStatus->status == false) {
+                throw new Exception($checkStatus->message, $checkStatus->statusCode);
+            }
+            return json_decode(cUtils::returnData(true, "User Status", $checkStatus->data, true, 200));
+        } catch (Exception $e) {
+            return json_decode(cUtils::returnData(false, $e->getMessage(), $data, true, $e->getCode() ?: 500));
+        }
+    }
 }

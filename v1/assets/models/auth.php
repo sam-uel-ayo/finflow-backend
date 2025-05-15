@@ -14,7 +14,7 @@ class mAuth {
     public static function checkUserMail ($email)
     {
         try {
-            $query = "SELECT user_id, password FROM users WHERE email = :email";
+            $query = "SELECT user_id, password,is_verified, kyc_status, has_transaction_pin FROM users WHERE email = :email";
             $stmt = Database::getConnection()->prepare($query);
 
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);

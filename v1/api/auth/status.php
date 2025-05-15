@@ -16,6 +16,6 @@ $data->user_id = $user->sub;
 // Logic here
 $status = cAuth::onboardingStatus($data);
 if ($status === false) {
-    return cUtils::outputData(false, "Failed to fetch onboarding status", null, true, 500);
+    return cUtils::outputData(false, $status->message, $status->data, true, 500);
 }
 return cUtils::outputData(true, $status->message, $status->data, true, $status->statusCode);

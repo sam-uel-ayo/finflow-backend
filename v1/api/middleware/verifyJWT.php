@@ -26,7 +26,7 @@ function verifyJWT($options = []) {
         // If access token still not available and auth is required
         if (!$token) {
             if ($options['requireAuth']) {
-                throw new Exception('Authentication required', 401);
+                throw new Exception('Authentication required, Please login', 401);
             }
             return null;
         }

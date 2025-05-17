@@ -148,7 +148,30 @@ class cUtils {
     public static function config(string $key, $default = null) {
         return getenv($key) ?: $_ENV[$key] ?? $default;
     }
+    // End of method
 
+
+    // Encrypt a string (e.g., account_id)
+    public static function encryptString($input) {
+        $key = self::config('ENC_KEY');
+        $cipher = 'AES-128-CBC';
+        $iv = substr(hash('sha256', $key), 0, 16);
+
+        $encrypted = openssl_encrypt($input, $cipher, $key, 0, $iv);
+        return rtrim(strtr(base64_encode($encrypted), '+/', '-_'), '=');
+    }
+    // End of method
+
+    // Decrypt a string back to original
+    public static function decryptString($encrypted) {
+        $key = self::config('ENC_KEY');
+        $cipher = 'AES-128-CBC';
+        $iv = substr(hash('sha256', $key), 0, 16);
+
+        $decoded = base64_decode(strtr($encrypted, '-_', '+/'));
+        return openssl_decrypt($decoded, $cipher, $key, 0, $iv);
+    }
+    // End of method
 
 
 }

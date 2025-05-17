@@ -32,7 +32,37 @@ class cUtils {
             self::outputData(false, "Payload Error", $errors, true, 400);
         }
     }
-// End verify payload
+    // End verify payload
+
+
+    //  class
+    public static function validateGetPayload(array $requiredKeys, array $data, array $optionalKeys = [])
+    {
+        $errors = [];
+
+        // Combine all allowed keys
+        $validKeys = array_merge($requiredKeys, $optionalKeys);
+
+        // Find and report any unexpected keys
+        $invalidKeys = array_diff(array_keys($data), $validKeys);
+        foreach ($invalidKeys as $key) {
+            $errors[] = "Invalid parameter: '$key'";
+        }
+
+        // Check for required fields with non-empty values
+        foreach ($requiredKeys as $key) {
+            $value = trim((string)($data[$key] ?? ''));
+            if ($value === '') {
+                $errors[] = ucfirst($key) . " is required";
+            }
+        }
+
+        // If any error is found, output and halt
+        if (!empty($errors)) {
+            self::outputData(false, "Parameter Error", $errors, true, 400);
+        }
+    }
+
 
 
 

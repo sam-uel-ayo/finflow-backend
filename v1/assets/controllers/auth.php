@@ -305,10 +305,10 @@ class cAuth {
             if ($resetPassword->status == false) {
                 throw new Exception($resetPassword->message, $resetPassword->statusCode);
             }
-            echo $OTP;
-            // Send Mail
-            //Mailer::resetPassword($data->email, $OTP); Send link - $resetUrl = "https://finflow/reset-password-callback?email=" . urlencode($data->email) . "&otp=" . urlencode($OTP);
-            return json_decode(cUtils::returnData(true, $resetPassword->message . " Check the mail sent to your email address to set new password.", $data, true, 200));
+            
+            // Send Email - OTP Sent
+            Mailer::resetPassword($data->email, $OTP);
+            return json_decode(cUtils::returnData(true, $resetPassword->message . " Check the mail sent to your email address to set new password.", $data->email, true, 200));
         } catch (Exception $e) {
             return json_decode(cUtils::returnData(false, $e->getMessage(), $data, true, $e->getCode() ?: 500));
         }

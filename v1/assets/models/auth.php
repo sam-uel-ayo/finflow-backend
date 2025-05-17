@@ -135,6 +135,10 @@ class mAuth {
             if (!$stmt->execute()) {
                 throw new Exception("Something went wrong. Try again", 500);
             }
+
+            if ($stmt->rowCount() === 0) {
+                throw new Exception("User doesn't exist", 400);
+            }
             return cUtils::returnData(true, "Reset successfull", [], true, 200);
         } catch (PDOException $e) {
             return cUtils::returnData(false, "Database error: " . $e->getMessage(), null, true, 500);

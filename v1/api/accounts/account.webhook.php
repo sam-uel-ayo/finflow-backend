@@ -36,11 +36,11 @@ if ($data && isset($data->event) && isset($data->data)) {
             break;
 
         default:
-            $response = [
+            $response = cUtils::arrayToObject([
                 'status' => false,
                 'message' => 'Unhandled event type',
-                'data' => null
-            ];
+                'data' => $data->data
+            ]);
             error_log("Unhandled event type: " . $data->event);
             break;
     }

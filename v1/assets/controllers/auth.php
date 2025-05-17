@@ -252,7 +252,7 @@ class cAuth {
             }
 
             $checkUser = json_decode(mAuth::resetInfo($data->email)); 
-            if (!password_verify($data->oldpassword, $checkUser->data->password)) {
+            if (!password_verify($data->old_password, $checkUser->data->password)) {
                 throw new Exception("Old Password Incorrect", 400);
             }
         
